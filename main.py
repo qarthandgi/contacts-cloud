@@ -8,6 +8,6 @@ class TestResource(object):
 
 app = falcon.API()
 
-test_resouce = TestResource()
+test_resource = TestResource()
 
 app.add_route('/test', test_resource)
