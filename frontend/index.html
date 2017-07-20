@@ -39,6 +39,7 @@
 				<contact-operation
 				:usermodel="userModel"
 				:newstate="newState"
+				@place-file="placeFile"
 				@update-this="updateItem"
 				@create-this='createItem'>
 				</contact-operation>
@@ -79,6 +80,7 @@
 			<span v-if="newstate">Creation</span>
 			<span v-else>Edit {{usermodel.firstName}} {{usermodel.lastName}}</span>
 			<br>
+			<input v-if="newstate" type="file" ref='file-upload' @change="onPlacingFile">
 			<input type="text" v-model="usermodel.firstName">
 			<input type="text" v-model="usermodel.lastName">
 			<input type="text" v-model="usermodel.dob">
@@ -144,6 +146,11 @@
 					},
 					createThis: function() {
 						this.$emit('create-this');
+					},
+					onPlacingFile: function() {
+						var file = this.$refs['file-upload'].files[0];
+						this.$emit('place-file', file);
+
 					}
 				}
 			});
@@ -160,8 +167,11 @@
 					selectedContactId: undefined,
 					newState: false,
 					operationPanelActive: false,
+					uploadFile: undefined,
+					fileToUpload: false,
 					userModel: {
 						id: null,
+						imageFormData: null,
 						firstName: '',
 						lastName: '',
 						dob: '',
@@ -191,6 +201,10 @@
 							return nameA < nameB ? -1 : nameA > nameB ? 1 : 0;
 						});
 					},
+					placeFile: function(file) {
+						this.uploadFile = file;
+						this.fileToUpload = true;
+					},
 					deleteItem: function(id) {
 						var that = this;
 						ax.delete('/contacts', {
@@ -213,6 +227,7 @@
 						this.newState = true;
 						this.userModel = {
 							id: null,
+							imageFormData: null,
 							firstName: '',
 							lastName: '',
 							dob: '',
@@ -223,6 +238,7 @@
 					createItem: function() {
 						var that = this;
 						ax.post('/contacts', {
+							imageFormData: that.userModel.imageFormData,
 							firstName: that.userModel.firstName,
 							lastName: that.userModel.lastName,
 							dob: that.userModel.dob,
@@ -231,7 +247,17 @@
 						}).then(function(res) {
 							that.contacts.push(res.data);
 							app.sortContacts();
+
+							var data = new FormData();
+							data.append('id', res.data.id);
+							data.append('file', that.uploadFile);
+							ax.post('/upload', data).then(function(res) {
+								console.log(res);
+								that.uploadFile = undefined;
+								that.fileToUpload = false;
+							})
 						}).catch(function(err) {
+							console.log(err);
 							console.log('System Error');
 						});
 					},

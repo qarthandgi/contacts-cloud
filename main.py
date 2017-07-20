@@ -36,6 +36,7 @@ class ContactsResource(object):
 		db.connect()
 		res.status = falcon.HTTP_200
 		req_json = json.loads(req.stream.read().decode('utf-8'))
+		print(req_json)
 		contact = Contact(
 			first_name=req_json['firstName'],
 			last_name=req_json['lastName'],
@@ -75,10 +76,24 @@ class ContactsResource(object):
 
 contacts_resource = ContactsResource()
 
+
+class UploadResource(object):
+
+	def on_post(self, req, res):
+		print(req.stream.read())
+		res.body = ('receiving')
+
+upload_resource = UploadResource()
+
+
+
 # app = falcon.API()
 app = falcon.API(middleware=[cors.middleware])
 
 app.add_route('/api/contacts', contacts_resource)
+app.add_route('/api/upload', upload_resource)
+
+
 
 #declare database
 db = SqliteDatabase('people.db')
