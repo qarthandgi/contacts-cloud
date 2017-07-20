@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Posting Up</title>
+	<link rel="stylesheet" href="/styles/styles.css">
+	<link href="https://fonts.googleapis.com/css?family=Amiri" rel="stylesheet">
+</head>
+<body>
+	<div id="app">
+		<header>
+			<div id="title">Liaison</div>
+		</header>
+		<section id=main>
+			<section id="side-stage">
+				<div id="contact-list">
+					<a-contact
+					v-for="contact in contacts"
+					:contact="contact"
+					:key="contact.id"
+					:contactid="selectedContactId"
+					@delete-this="deleteItem"
+					@select-this="selectItem">
+					</a-contact>
+				</div>
+			</section>
+			<section id="main-stage">
+				<br>
+				<button @click="newItem">Create</button>
+				<selected-contact
+				:contact="selectedContact"
+				:contactid="selectedContactId"
+				@edit-this="editItem"
+				@delete-this="deleteItem">
+				</selected-contact>
+				<div id="map"></div>
+			</section>
+			<section id="operation-stage">
+				<contact-operation
+				:usermodel="userModel"
+				:newstate="newState"
+				@update-this="updateItem"
+				@create-this='createItem'>
+				</contact-operation>
+			</section>
+		</section>
+		<!-- <button @click="sortContacts"></button> -->
+	</div>
+	
+	<!-- **** A-CONTACT **** -->
+	<script type="text/x-template" id="a-contact">
+		<div class='a-contact' :class="{active: isActive}" @click="selectThis">
+			<div class='fullname'>{{contact.first_name}} {{contact.last_name}}</div>
+
+			<!-- <small>{{contact.zip_code}}</small> | <span @click="deleteThis">Delete</span> -->
+
+		</div>
+	</script>
+
+	<!-- **** SELECTED-CONTACT **** -->
+	<script type="text/x-template" id="selected-contact">
+		<div id="selected-contact-wrapper">
+		{{contactid}}
+			<div v-if="contactid !== undefined && contactid !== NaN">
+				{{contact.first_name}}<br>
+				{{contact.last_name}}<br>
+				{{contact.zip_code}}<br>
+				{{contact.dob}} - dob
+			</div>
+		<br>
+		<span @click="editThis">Edit</span>
+		<span @click="deleteThis">Delete</span>
+		</div>
+	</script>
+
+	<!-- **** CONTACT-OPERATION **** -->
+	<script type="text/x-template" id="contact-operation">
+		<div id="contact-operation">
+			<span v-if="newstate">Creation</span>
+			<span v-else>Edit {{usermodel.firstName}} {{usermodel.lastName}}</span>
+			<br>
+			<input type="text" v-model="usermodel.firstName">
+			<input type="text" v-model="usermodel.lastName">
+			<input type="text" v-model="usermodel.dob">
+			<input type="text" v-model="usermodel.phoneNumber">
+			<input type="text" v-model="usermodel.zipCode">
+			<div id="operation-button-wrapper">
+				<button v-if="newstate" @click="createThis">Create</button>
+				<button v-else @click="updateThis">Update</button>
+			</div>
+		</div>
+	</script>
+
+
+	<!-- <script src="https://unpkg.com/vue"></script> -->
+	<script src="./vue.js"></script>
+	<!-- <script src="https://unpkg.com/axios/dist/axios.min.js"></script> -->
+	<script src="./axios.js"></script>
+	<script>
+			var ax = axios.create({
+				baseURL: 'http://localhost:5000/api/',
+				timeout: 5000,
+				headers: {}
+			});
+
+			// COMPONENTS ------------
+			Vue.component('a-contact', {
+				props: ['contact', 'contactid'],
+				template: '#a-contact',
+				computed: {
+					isActive: function() {
+						return this.contact.id == this.contactid ? true : false
+					}
+				},
+				methods: {
+					deleteThis: function() {
+						this.$emit('delete-this', this.contact.id);
+					},
+					selectThis: function() {
+						this.$emit('select-this', this.contact.id);
+					}
+				}
+			});
+
+			Vue.component('selected-contact', {
+				props: ['contact', 'contactid'],
+				template: '#selected-contact',
+				methods: {
+					editThis: function() {
+						this.$emit('edit-this');
+					},
+					deleteThis: function() {
+						this.$emit('delete-this', this.contactid);
+					}
+				}
+			});
+
+			Vue.component('contact-operation', {
+				props: ['usermodel', 'newstate'],
+				template: '#contact-operation',
+				methods: {
+					updateThis: function() {
+						this.$emit('update-this');
+					},
+					createThis: function() {
+						this.$emit('create-this');
+					}
+				}
+			});
+
+
+			// INSTANTIATE VUE ------------
+			var app = new Vue({
+				el: '#app',
+
+				// STATE ------------
+				data: {
+					contacts: [],
+					sortLastName: true,
+					selectedContactId: undefined,
+					newState: false,
+					operationPanelActive: false,
+					userModel: {
+						id: null,
+						firstName: '',
+						lastName: '',
+						dob: '',
+						phoneNumber: '',
+						zipCode: ''
+					}
+				},
+
+				// COMPUTED PROPERTIES ------------
+				computed: {
+					selectedContact: function() {
+						for(var i = 0; i < this.contacts.length; i++) {
+							if (this.selectedContactId === this.contacts[i].id) {
+								return this.contacts[i];
+							}
+						}
+					}
+				},
+
+				// METHODS ------------
+				methods: {
+					sortContacts: function() {
+						var that = this;
+						this.contacts.sort(function(a,b) {
+							var nameA = that.sortLastName ? a.last_name.toUpperCase() : a.first_name.toUpperCase();
+							var nameB = that.sortLastName ? b.last_name.toUpperCase() : b.first_name.toUpperCase();
+							return nameA < nameB ? -1 : nameA > nameB ? 1 : 0;
+						});
+					},
+					deleteItem: function(id) {
+						var that = this;
+						ax.delete('/contacts', {
+							params: {
+								id: id
+							}
+						}).then(function(data) {
+							for(var i = 0; i < that.contacts.length; i++) {
+								if (that.contacts[i].id === parseInt(data.data)) {
+									that.contacts.splice(i, 1);
+									that.selectedContactId = that.contacts[i-1].id;
+									break;
+								}
+							}
+						}).catch(function(err) {
+							console.log(err);
+						});
+					},
+					newItem: function() {
+						this.newState = true;
+						this.userModel = {
+							id: null,
+							firstName: '',
+							lastName: '',
+							dob: '',
+							phoneNumber: '',
+							zipCode: ''
+						};
+					},
+					createItem: function() {
+						var that = this;
+						ax.post('/contacts', {
+							firstName: that.userModel.firstName,
+							lastName: that.userModel.lastName,
+							dob: that.userModel.dob,
+							phoneNumber: that.userModel.phoneNumber,
+							zipCode: that.userModel.zipCode
+						}).then(function(res) {
+							that.contacts.push(res.data);
+							app.sortContacts();
+						}).catch(function(err) {
+							console.log('System Error');
+						});
+					},
+					editItem: function() {
+						this.newState = false;
+						this.userModel = {
+							id: this.selectedContact.id,
+							firstName: this.selectedContact.first_name,
+							lastName: this.selectedContact.last_name,
+							dob: this.selectedContact.dob,
+							phoneNumber: this.selectedContact.phone_number,
+							zipCode: this.selectedContact.zip_code
+						};
+					},
+					selectItem: function(id) {
+						this.selectedContactId = id;
+					},
+					updateItem: function() {
+						var that = this;
+						ax.put('/contacts', {
+							id: that.userModel.id,
+							first_name: that.userModel.firstName,
+							last_name: that.userModel.lastName,
+							dob: that.userModel.dob,
+							phone_number: that.userModel.phoneNumber,
+							zip_code: that.userModel.zipCode 
+						}).then(function(res) {
+							var contact;
+							var data = res['data'];
+							for (var i = 0; i < that.contacts.length; i++) {
+								if (that.contacts[i].id === that.selectedContactId) {
+									contact = that.contacts[i];
+								}
+							}
+							contact.first_name = data['first_name'];
+							contact.last_name = data['last_name'];
+							contact.dob = data['dob'];
+							contact.phone_number = data['phone_number'];
+							contact.zip_code = data['zip_code'];
+							app.sortContacts();
+						}).catch(function(err) {
+							console.log(err);
+						});
+					}
+				},
+
+				// WATCHERS ------------
+				watch: {
+					sortLastName: function(newSortLastName) {
+						this.sortContacts();
+					}
+				},
+
+				// LIFECYCLE HOOKS ------------
+				beforeCreate: function() {
+					ax.get('/contacts')
+						.then(function(data) {
+							for (var i = 0; i < data.data.length; i++) {
+								if (i === 0)  {
+									app.selectedContactId = data.data[i].id;
+								}
+								app.contacts.push(data.data[i]);
+							}
+							app.sortContacts();
+						}).catch(function(err) {
+							console.log(err);
+						});
+				}
+			});
+		
+
+	</script>
+</body>
+</html>

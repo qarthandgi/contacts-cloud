@@ -1,0 +1,99 @@
+html, body
+	margin: 0
+	padding: 0
+	height: 100%
+
+body
+	box-sizing:  border-box
+	overflow: hidden
+	font-family: 'Amiri', serif
+
+$head-height: 0
+
+#app
+	height: 100%
+
+header
+	// display: none
+	z-index: 100
+	height: $head-height
+	top: 0
+	position: absolute
+	// width: 100%
+	// background-color: rgba(70,70,70,1)
+	// box-sizing: border-box
+	width: 80%
+	right: 0
+	// border-bottom: 2px rgba(70,70,70,1) solid
+	#title
+		position: relative
+		width: 95px
+		margin: 0 auto
+		text-align: center
+		font-size: 18px
+		color: rgba(40,40,40,1)
+		letter-spacing: 0.2em
+		border-bottom: 1px rgba(125,125,125,1) solid
+		height: 25px
+
+
+section#main
+	// border: 1px blue solid
+	height: 100%
+	position: absolute
+	top: $head-height
+	bottom: 0
+	left: 0
+	right: 0
+
+#side-stage
+	position: absolute
+	width: 20%
+	height: 100%
+	bottom: 0
+	background-color: rgba(252,252,252,1)
+	box-shadow: inset -9px 0px 13px -6px rgba(66,66,66,0.5)
+	left: 0%
+	.a-contact
+		width: 100%
+		height: 31px
+		border-bottom: 1px rgba(90,90,90,0.4) solid
+		// box-sizing: border-box
+		// border-right: 2px blue solid
+		position: relative
+		cursor: pointer
+		box-shadow: inset -10px 0px 10px -6px lighten(rgba(32, 98, 204, 0), 10%)
+		transition: box-shadow 400ms linear
+		&:hover
+			box-shadow: inset -10px 0px 10px -6px lighten(rgba(32, 98, 204, 0.5), 10%)
+			transition: box-shadow 50ms linear
+		&.active
+			box-shadow: inset -10px 0px 10px -6px lighten(rgba(32, 98, 204, 0.8), 10%)
+			transition: box-shadow 400ms linear
+		.fullname
+			position: absolute
+			top: 50%
+			right: 50px
+			transform: translateY(-50%)
+			// border: 1px blue solid
+			text-align: right
+			font-size: 17px
+			color: rgba(0,0,0,0.7)
+			transition: color 100ms linear
+		&.active .fullname
+			color: rgba(0,0,0,0.95)
+			transition: color 100ms linear
+
+#main-stage
+	position: absolute
+	width: 80%
+	height: 100%
+	bottom: 0
+	box-sizing: border-box
+	right: 0%
+	background-color: rgba(227,227,227,1)
+
+
+#operation-stage
+	position: absolute
+	top: 240px
