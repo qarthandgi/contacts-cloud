@@ -4,15 +4,13 @@
 	<meta charset="UTF-8">
 	<title>Posting Up</title>
 	<link rel="stylesheet" href="/styles/styles.css">
-	<link href="https://fonts.googleapis.com/css?family=Amiri" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css?family=Amiri|Lora" rel="stylesheet">
+	<link rel="stylesheet" href="/styles/font-awesome.min.css">
 </head>
 <body>
 	<div id="app">
-		<header>
-			<div id="title">Liaison</div>
-		</header>
 		<section id=main>
-			<section id="side-stage">
+			<section id="side-stage" data-arrange="pinned" ref="side-stage">
 				<div id="contact-list">
 					<a-contact
 					v-for="contact in contacts"
@@ -23,25 +21,32 @@
 					@select-this="selectItem">
 					</a-contact>
 				</div>
+				<div @click="newItem" class="create">
+					<i class="fa fa-plus-circle"></i> Create
+				</div>
 			</section>
-			<section id="main-stage">
-				<br>
-				<button @click="newItem">Create</button>
+			<section id="main-stage" data-arrange="partial" ref="main-stage">
+				<div @click="toggleSidePeak" v-if="compactState" id="side-toggler" data-arrange="open-potential" ref="side-toggler">
+					<i v-if="(!sidePeaking)" class="fa fa-bars"></i>
+					<i v-if="(sidePeaking)" class="fa fa-times"></i>
+				</div>
 				<selected-contact
 				:contact="selectedContact"
 				:contactid="selectedContactId"
+				:currentzipcode="selectedContactZipCode"
 				@edit-this="editItem"
 				@delete-this="deleteItem">
 				</selected-contact>
-				<div id="map"></div>
+				<div id="map" ref="map"></div>
 			</section>
-			<section id="operation-stage">
+			<section id="operation-stage" :class="{active: operationPanelActive}">
 				<contact-operation
 				:usermodel="userModel"
 				:newstate="newState"
 				@place-file="placeFile"
 				@update-this="updateItem"
-				@create-this='createItem'>
+				@create-this="createItem"
+				@toggle-operate="toggleOperationPanel">
 				</contact-operation>
 			</section>
 		</section>
@@ -51,7 +56,10 @@
 	<!-- **** A-CONTACT **** -->
 	<script type="text/x-template" id="a-contact">
 		<div class='a-contact' :class="{active: isActive}" @click="selectThis">
+			<div class="contact-picture" :style="{'background-image': imageUrl}"></div>
 			<div class='fullname'>{{contact.first_name}} {{contact.last_name}}</div>
+
+			<div class="delete-this" @click="deleteThis">+</div>
 
 			<!-- <small>{{contact.zip_code}}</small> | <span @click="deleteThis">Delete</span> -->
 
@@ -60,36 +68,58 @@
 
 	<!-- **** SELECTED-CONTACT **** -->
 	<script type="text/x-template" id="selected-contact">
-		<div id="selected-contact-wrapper">
-		{{contactid}}
-			<div v-if="contactid !== undefined && contactid !== NaN">
-				{{contact.first_name}}<br>
-				{{contact.last_name}}<br>
-				{{contact.zip_code}}<br>
-				{{contact.dob}} - dob
+		<div class="selected-contact-wrapper">
+			<div class="current-contact" v-if="contactid !== undefined && contactid !== NaN">
+				<div class="image-wrapper" :style="{'background-image': imageUrl}"></div>
+				<div class="gradient"></div>
+				<div class="contact-info">
+					<div class="name">{{contact.first_name}} {{contact.last_name}}</div>
+					<div class="personal-info">
+						<!-- {{contact.zip_code}} - -->
+						<i class="fa fa-globe"></i> {{currentzipcode}}
+						&nbsp;&nbsp;&nbsp;
+						<i class="fa fa-phone"></i> {{contact.phone_number}}
+						&nbsp;&nbsp;&nbsp;
+						<i v-if="contact.dob !== ''" class="fa fa-birthday-cake"></i> {{contact.dob}}
+					</div>
+					<div class="contact-buttons">
+						<div @click="editThis" class="edit"><i class="fa fa-pencil"></i> Edit</div>
+						<div @click="deleteThis" class="delete"><i class="fa fa-times"></i> Delete</div>
+					</div>
+				</div>
 			</div>
 		<br>
-		<span @click="editThis">Edit</span>
-		<span @click="deleteThis">Delete</span>
+		
 		</div>
 	</script>
 
 	<!-- **** CONTACT-OPERATION **** -->
 	<script type="text/x-template" id="contact-operation">
 		<div id="contact-operation">
-			<span v-if="newstate">Creation</span>
-			<span v-else>Edit {{usermodel.firstName}} {{usermodel.lastName}}</span>
-			<br>
-			<input v-if="newstate" type="file" ref='file-upload' @change="onPlacingFile">
-			<input type="text" v-model="usermodel.firstName">
-			<input type="text" v-model="usermodel.lastName">
-			<input type="text" v-model="usermodel.dob">
-			<input type="text" v-model="usermodel.phoneNumber">
-			<input type="text" v-model="usermodel.zipCode">
+			<div class="title">
+				<span v-if="newstate">Create</span>
+				<span v-else>Edit <small>{{usermodel.firstName}} {{usermodel.lastName}}</small></span>
+			</div>
+			<div class="file-upload-wrapper">
+				<div v-if="(image || usermodel.imageUrl)" @click="triggerFileDialog" class="preview-upload" :style="{'background-image': imageUrl}"></div>
+				<input type="file" accept="image/*" ref='file-upload' @change="onFileChange">
+			</div>
+			<div class="name-inputs">
+				<input id="operate-first-name" type="text" v-model="usermodel.firstName" class='first-name' placeholder="first name"><br><br>
+				<input type="text" v-model="usermodel.lastName" class='last-name' placeholder="last name"><br>
+			</div>
+			<div class="info-part-2">
+				<input type="text" v-model="usermodel.phoneNumber" class='phone-number' placeholder="phone number"><br><br>
+				<input type="text" v-model="usermodel.zipCode" class='zip-code' placeholder="zip code">
+			</div>
+			
+			<input type="text" v-model="usermodel.dob" class='dob' placeholder="date of birth" size=10 maxlength=10  onkeyup="this.value=this.value.replace(/^(\d\d)(\d)$/g,'$1/$2').replace(/^(\d\d\/\d\d)(\d+)$/g,'$1/$2').replace(/[^\d\/]/g,'')">
+
 			<div id="operation-button-wrapper">
 				<button v-if="newstate" @click="createThis">Create</button>
 				<button v-else @click="updateThis">Update</button>
 			</div>
+			<div @click="cancelOperate">Cancel</div>
 		</div>
 	</script>
 
@@ -98,78 +128,197 @@
 	<script src="./vue.js"></script>
 	<!-- <script src="https://unpkg.com/axios/dist/axios.min.js"></script> -->
 	<script src="./axios.js"></script>
+	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBOxVt-CBu7UMbdl6mcbS9M7jg5yUd1twA"></script>
+	<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
 	<script>
-			var ax = axios.create({
-				baseURL: 'http://localhost:5000/api/',
-				timeout: 5000,
-				headers: {}
-			});
+		var ax = axios.create({
+			baseURL: 'http://localhost:5000/api/',
+			timeout: 20000,
+			headers: {}
+		});
 
-			// COMPONENTS ------------
-			Vue.component('a-contact', {
-				props: ['contact', 'contactid'],
-				template: '#a-contact',
-				computed: {
-					isActive: function() {
-						return this.contact.id == this.contactid ? true : false
-					}
+		// COMPONENTS ------------
+		Vue.component('a-contact', {
+			props: ['contact', 'contactid'],
+			template: '#a-contact',
+			computed: {
+				isActive: function() {
+					return this.contact.id == this.contactid ? true : false
 				},
-				methods: {
-					deleteThis: function() {
-						this.$emit('delete-this', this.contact.id);
-					},
-					selectThis: function() {
-						this.$emit('select-this', this.contact.id);
+				imageUrl: function() {
+					return "url('" + this.contact.image_url + "')";
+				}
+			},
+			methods: {
+				deleteThis: function() {
+					this.$emit('delete-this', this.contact.id);
+				},
+				selectThis: function() {
+					this.$emit('select-this', this.contact.id);
+				}
+			}
+		});
+
+		Vue.component('selected-contact', {
+			props: ['contact', 'contactid', 'currentzipcode'],
+			template: '#selected-contact',
+			methods: {
+				editThis: function() {
+					this.$emit('edit-this');
+				},
+				deleteThis: function() {
+					this.$emit('delete-this', this.contactid);
+				}
+			},
+			computed: {
+				imageUrl: function() {
+					return "url('" + this.contact.image_url + "')";
+				}
+			}
+		});
+
+		Vue.component('contact-operation', {
+			props: ['usermodel', 'newstate'],
+			data: function() {
+				return {
+					image: ''
+				};
+			},
+			computed: {
+				imageUrl: function() {
+					return this.newstate ? "url('" + this.image + "')" : "url('" + this.usermodel.imageUrl + "')";
+				}
+			},
+			template: '#contact-operation',
+			methods: {
+				updateThis: function() {
+					this.$emit('update-this');
+				},
+				createThis: function() {
+					this.$emit('create-this');
+					// this.resetFileUpload();
+					this.image = '';
+				},
+				onPlacingFile: function() {
+					var file = this.$refs['file-upload'].files[0];
+					this.$emit('place-file', file);
+				},
+				cancelOperate: function() {
+					if (this.newstate) {
+						this.resetFileUpload();
+					}
+					this.$emit('toggle-operate');
+					this.image = '';
+				},
+				resetFileUpload: function() {
+					this.$refs['file-upload'].value = '';
+				},
+				onFileChange: function(e) {
+					console.log(e);
+					var files = e.target.files || e.dataTransfer.files;
+					if (!files.length) {
+						return;
+					}
+					this.createImage(files[0]);
+				},
+				createImage: function(file) {
+					this.onPlacingFile();
+					var reader = new FileReader();
+					var that = this;
+					reader.onload = function(e) {
+						if (that.newstate) {
+							that.image = e.target.result;
+						} else {
+							that.usermodel.imageUrl = e.target.result;
+						}
+					};
+					reader.readAsDataURL(file);
+				},
+				triggerFileDialog: function() {
+					$(this.$refs['file-upload']).trigger('click');
+				}
+			}
+		});
+
+
+		// INSTANTIATE VUE ------------
+		var app = new Vue({
+			el: '#app',
+
+			// STATE ------------
+			data: {
+				contacts: [],
+				sortLastName: true,
+				selectedContactId: undefined,
+				selectedContactZipCode: '',
+				newState: false,
+				operationPanelActive: false,
+				uploadFile: undefined,
+				fileToUpload: false,
+				breakpoint: 900,
+				compactState: false,
+				sidePeaking: false,
+				userModel: {
+					id: null,
+					imageFormData: null,
+					imageUrl: '',
+					firstName: '',
+					lastName: '',
+					dob: '',
+					phoneNumber: '',
+					zipCode: ''
+				}
+			},
+
+			// COMPUTED PROPERTIES ------------
+			computed: {
+				selectedContact: function() {
+					for(var i = 0; i < this.contacts.length; i++) {
+						if (this.selectedContactId === this.contacts[i].id) {
+							return this.contacts[i];
+						}
 					}
 				}
-			});
+			},
 
-			Vue.component('selected-contact', {
-				props: ['contact', 'contactid'],
-				template: '#selected-contact',
-				methods: {
-					editThis: function() {
-						this.$emit('edit-this');
-					},
-					deleteThis: function() {
-						this.$emit('delete-this', this.contactid);
-					}
-				}
-			});
-
-			Vue.component('contact-operation', {
-				props: ['usermodel', 'newstate'],
-				template: '#contact-operation',
-				methods: {
-					updateThis: function() {
-						this.$emit('update-this');
-					},
-					createThis: function() {
-						this.$emit('create-this');
-					},
-					onPlacingFile: function() {
-						var file = this.$refs['file-upload'].files[0];
-						this.$emit('place-file', file);
-
-					}
-				}
-			});
-
-
-			// INSTANTIATE VUE ------------
-			var app = new Vue({
-				el: '#app',
-
-				// STATE ------------
-				data: {
-					contacts: [],
-					sortLastName: true,
-					selectedContactId: undefined,
-					newState: false,
-					operationPanelActive: false,
-					uploadFile: undefined,
-					fileToUpload: false,
-					userModel: {
+			// METHODS ------------
+			methods: {
+				sortContacts: function() {
+					var that = this;
+					this.contacts.sort(function(a,b) {
+						var nameA = that.sortLastName ? a.last_name.toUpperCase() : a.first_name.toUpperCase();
+						var nameB = that.sortLastName ? b.last_name.toUpperCase() : b.first_name.toUpperCase();
+						return nameA < nameB ? -1 : nameA > nameB ? 1 : 0;
+					});
+				},
+				placeFile: function(file) {
+					this.uploadFile = file;
+					this.fileToUpload = true;
+				},
+				deleteItem: function(id) {
+					var that = this;
+					ax.delete('/contacts', {
+						params: {
+							id: id
+						}
+					}).then(function(data) {
+						for(var i = 0; i < that.contacts.length; i++) {
+							if (that.contacts[i].id === parseInt(data.data)) {
+								that.contacts.splice(i, 1);
+								that.selectedContactId = that.contacts[i-1].id;
+								break;
+							}
+						}
+					}).catch(function(err) {
+						console.log(err);
+					});
+				},
+				toggleOperationPanel: function() {
+					this.operationPanelActive = false;
+				},
+				newItem: function() {
+					this.newState = true;
+					this.userModel = {
 						id: null,
 						imageFormData: null,
 						firstName: '',
@@ -177,158 +326,343 @@
 						dob: '',
 						phoneNumber: '',
 						zipCode: ''
-					}
+					};
+					this.operationPanelActive = true;
 				},
+				createItem: function() {
+					var that = this;
+					ax.post('/contacts', {
+						imageFormData: that.userModel.imageFormData,
+						firstName: that.userModel.firstName,
+						lastName: that.userModel.lastName,
+						dob: that.userModel.dob,
+						phoneNumber: that.userModel.phoneNumber,
+						zipCode: that.userModel.zipCode
+					}).then(function(res) {
+						app.operationPanelActive = false;
+						that.contacts.push(res.data);
+						app.sortContacts();
+						app.selectedContactId = res.data.id;
 
-				// COMPUTED PROPERTIES ------------
-				computed: {
-					selectedContact: function() {
-						for(var i = 0; i < this.contacts.length; i++) {
-							if (this.selectedContactId === this.contacts[i].id) {
-								return this.contacts[i];
-							}
-						}
-					}
-				},
-
-				// METHODS ------------
-				methods: {
-					sortContacts: function() {
-						var that = this;
-						this.contacts.sort(function(a,b) {
-							var nameA = that.sortLastName ? a.last_name.toUpperCase() : a.first_name.toUpperCase();
-							var nameB = that.sortLastName ? b.last_name.toUpperCase() : b.first_name.toUpperCase();
-							return nameA < nameB ? -1 : nameA > nameB ? 1 : 0;
-						});
-					},
-					placeFile: function(file) {
-						this.uploadFile = file;
-						this.fileToUpload = true;
-					},
-					deleteItem: function(id) {
-						var that = this;
-						ax.delete('/contacts', {
-							params: {
-								id: id
-							}
-						}).then(function(data) {
-							for(var i = 0; i < that.contacts.length; i++) {
-								if (that.contacts[i].id === parseInt(data.data)) {
-									that.contacts.splice(i, 1);
-									that.selectedContactId = that.contacts[i-1].id;
+						var data = new FormData();
+						data.append('id', res.data.id);
+						data.append('file', that.uploadFile);
+						ax.post('/upload', data).then(function(res) {
+							console.log(res);
+							for (var i = that.contacts.length - 1; i >= 0; i--) {
+								if (app.selectedContactId == that.contacts[i].id) {
+									that.contacts[i].image_url = res.data;
 									break;
 								}
 							}
+							that.uploadFile = undefined;
+							that.fileToUpload = false;
 						}).catch(function(err) {
 							console.log(err);
 						});
-					},
-					newItem: function() {
-						this.newState = true;
-						this.userModel = {
-							id: null,
-							imageFormData: null,
-							firstName: '',
-							lastName: '',
-							dob: '',
-							phoneNumber: '',
-							zipCode: ''
-						};
-					},
-					createItem: function() {
-						var that = this;
-						ax.post('/contacts', {
-							imageFormData: that.userModel.imageFormData,
-							firstName: that.userModel.firstName,
-							lastName: that.userModel.lastName,
-							dob: that.userModel.dob,
-							phoneNumber: that.userModel.phoneNumber,
-							zipCode: that.userModel.zipCode
-						}).then(function(res) {
-							that.contacts.push(res.data);
-							app.sortContacts();
+					}).catch(function(err) {
+						console.log(err);
+						console.log('System Error');
+					});
+				},
+				editItem: function() {
+					this.newState = false;
+					this.userModel = {
+						id: this.selectedContact.id,
+						imageUrl: this.selectedContact.image_url,
+						firstName: this.selectedContact.first_name,
+						lastName: this.selectedContact.last_name,
+						dob: this.selectedContact.dob,
+						phoneNumber: this.selectedContact.phone_number,
+						zipCode: this.selectedContact.zip_code
+					};
+					this.operationPanelActive = true;
+				},
+				selectItem: function(id) {
+					this.selectedContactId = id;
+				},
+				updateItem: function() {
+					var that = this;
+					ax.put('/contacts', {
+						id: that.userModel.id,
+						first_name: that.userModel.firstName,
+						last_name: that.userModel.lastName,
+						dob: that.userModel.dob,
+						phone_number: that.userModel.phoneNumber,
+						zip_code: that.userModel.zipCode 
+					}).then(function(res) {
+						var contact;
+						var data = res['data'];
+						for (var i = 0; i < that.contacts.length; i++) {
+							if (that.contacts[i].id === that.selectedContactId) {
+								contact = that.contacts[i];
+							}
+						}
+						contact.first_name = data['first_name'];
+						contact.last_name = data['last_name'];
+						contact.dob = data['dob'];
+						contact.phone_number = data['phone_number'];
+						contact.zip_code = data['zip_code'];
+						app.operationPanelActive = false;
+						app.sortContacts();
 
-							var data = new FormData();
-							data.append('id', res.data.id);
-							data.append('file', that.uploadFile);
-							ax.post('/upload', data).then(function(res) {
-								console.log(res);
-								that.uploadFile = undefined;
-								that.fileToUpload = false;
-							})
-						}).catch(function(err) {
-							console.log(err);
-							console.log('System Error');
-						});
-					},
-					editItem: function() {
-						this.newState = false;
-						this.userModel = {
-							id: this.selectedContact.id,
-							firstName: this.selectedContact.first_name,
-							lastName: this.selectedContact.last_name,
-							dob: this.selectedContact.dob,
-							phoneNumber: this.selectedContact.phone_number,
-							zipCode: this.selectedContact.zip_code
-						};
-					},
-					selectItem: function(id) {
-						this.selectedContactId = id;
-					},
-					updateItem: function() {
-						var that = this;
-						ax.put('/contacts', {
-							id: that.userModel.id,
-							first_name: that.userModel.firstName,
-							last_name: that.userModel.lastName,
-							dob: that.userModel.dob,
-							phone_number: that.userModel.phoneNumber,
-							zip_code: that.userModel.zipCode 
-						}).then(function(res) {
-							var contact;
-							var data = res['data'];
-							for (var i = 0; i < that.contacts.length; i++) {
-								if (that.contacts[i].id === that.selectedContactId) {
-									contact = that.contacts[i];
+						var data = new FormData();
+						data.append('id', contact.id);
+						data.append('file', that.uploadFile);
+						ax.post('/upload', data).then(function(res) {
+							console.log(res);
+							for (var i = that.contacts.length - 1; i >= 0; i--) {
+								if (app.selectedContactId == that.contacts[i].id) {
+									that.contacts[i].image_url = res.data;
+									break;
 								}
 							}
-							contact.first_name = data['first_name'];
-							contact.last_name = data['last_name'];
-							contact.dob = data['dob'];
-							contact.phone_number = data['phone_number'];
-							contact.zip_code = data['zip_code'];
-							app.sortContacts();
+							that.uploadFile = undefined;
+							that.fileToUpload = false;
 						}).catch(function(err) {
 							console.log(err);
 						});
-					}
+					}).catch(function(err) {
+						console.log(err);
+					});
 				},
-
-				// WATCHERS ------------
-				watch: {
-					sortLastName: function(newSortLastName) {
-						this.sortContacts();
-					}
+				toCompact: function() {
+					this.$refs['side-stage'].dataset.arrange = "hiding";
+					this.$refs['main-stage'].dataset.arrange = "full";
+					this.compactState = true;
 				},
-
-				// LIFECYCLE HOOKS ------------
-				beforeCreate: function() {
-					ax.get('/contacts')
-						.then(function(data) {
-							for (var i = 0; i < data.data.length; i++) {
-								if (i === 0)  {
-									app.selectedContactId = data.data[i].id;
-								}
-								app.contacts.push(data.data[i]);
-							}
-							app.sortContacts();
-						}).catch(function(err) {
-							console.log(err);
-						});
+				toFull: function() {
+					this.$refs['side-stage'].dataset.arrange = "pinned";
+					this.$refs['main-stage'].dataset.arrange = "partial";
+					this.compactState = false;
+					this.sidePeaking = false;
+				},
+				toggleSidePeak: function() {
+					if (!this.sidePeaking) {
+						this.$refs['side-stage'].dataset.arrange = "peaking";
+						this.$refs['side-toggler'].dataset.arrange = "close-potential";
+						this.sidePeaking = true;
+					} else {
+						this.$refs['side-stage'].dataset.arrange = "hiding";
+						this.$refs['side-toggler'].dataset.arrange = "open-potential";
+						this.sidePeaking = false;
+					}
+					
 				}
-			});
-		
+			},
 
+			// WATCHERS ------------
+			watch: {
+				sortLastName: function(newSortLastName) {
+					this.sortContacts();
+				},
+				selectedContact: function() {
+					console.log('hey');
+					this.geocoder.geocode({'address': this.selectedContact.zip_code}, function(results, status) {
+						if (status == 'OK') {
+							console.log(results);
+							app.map.panTo(results[0].geometry.location);
+							app.selectedContactZipCode = results[0]['formatted_address'];
+						} else {
+							console.log('Geocoder not successful');
+						}
+					});
+				}
+			},
+
+			// LIFECYCLE HOOKS ------------
+			beforeCreate: function() {
+				ax.get('/contacts')
+					.then(function(data) {
+						for (var i = 0; i < data.data.length; i++) {
+							if (i === 0)  {
+								app.selectedContactId = data.data[i].id;
+							}
+							app.contacts.push(data.data[i]);
+						}
+						app.sortContacts();
+					}).catch(function(err) {
+						console.log(err);
+					});
+			},
+			mounted: function() {
+				this.map = new google.maps.Map(this.$refs.map, {
+					zoom: 5,
+					center: {lat: -25.363, lng: 131.044},
+					mapTypeControl: false,
+					styles: [
+								{
+								"elementType": "geometry",
+								"stylers": [
+								  {
+								    "color": "#f5f5f5"
+								  }
+								]
+								},
+								{
+								"elementType": "labels.icon",
+								"stylers": [
+								  {
+								    "visibility": "off"
+								  }
+								]
+								},
+								{
+								"elementType": "labels.text.fill",
+								"stylers": [
+								  {
+								    "color": "#616161"
+								  }
+								]
+								},
+								{
+								"elementType": "labels.text.stroke",
+								"stylers": [
+								  {
+								    "color": "#f5f5f5"
+								  }
+								]
+								},
+								{
+								"featureType": "administrative.land_parcel",
+								"elementType": "labels.text.fill",
+								"stylers": [
+								  {
+								    "color": "#bdbdbd"
+								  }
+								]
+								},
+								{
+								"featureType": "poi",
+								"elementType": "geometry",
+								"stylers": [
+								  {
+								    "color": "#eeeeee"
+								  }
+								]
+								},
+								{
+								"featureType": "poi",
+								"elementType": "labels.text.fill",
+								"stylers": [
+								  {
+								    "color": "#757575"
+								  }
+								]
+								},
+								{
+								"featureType": "poi.park",
+								"elementType": "geometry",
+								"stylers": [
+								  {
+								    "color": "#e5e5e5"
+								  }
+								]
+								},
+								{
+								"featureType": "poi.park",
+								"elementType": "labels.text.fill",
+								"stylers": [
+								  {
+								    "color": "#9e9e9e"
+								  }
+								]
+								},
+								{
+								"featureType": "road",
+								"elementType": "geometry",
+								"stylers": [
+								  {
+								    "color": "#ffffff"
+								  }
+								]
+								},
+								{
+								"featureType": "road.arterial",
+								"elementType": "labels.text.fill",
+								"stylers": [
+								  {
+								    "color": "#757575"
+								  }
+								]
+								},
+								{
+								"featureType": "road.highway",
+								"elementType": "geometry",
+								"stylers": [
+								  {
+								    "color": "#dadada"
+								  }
+								]
+								},
+								{
+								"featureType": "road.highway",
+								"elementType": "labels.text.fill",
+								"stylers": [
+								  {
+								    "color": "#616161"
+								  }
+								]
+								},
+								{
+								"featureType": "road.local",
+								"elementType": "labels.text.fill",
+								"stylers": [
+								  {
+								    "color": "#9e9e9e"
+								  }
+								]
+								},
+								{
+								"featureType": "transit.line",
+								"elementType": "geometry",
+								"stylers": [
+								  {
+								    "color": "#e5e5e5"
+								  }
+								]
+								},
+								{
+								"featureType": "transit.station",
+								"elementType": "geometry",
+								"stylers": [
+								  {
+								    "color": "#eeeeee"
+								  }
+								]
+								},
+								{
+								"featureType": "water",
+								"elementType": "geometry",
+								"stylers": [
+								  {
+								    "color": "#c9c9c9"
+								  }
+								]
+								},
+								{
+								"featureType": "water",
+								"elementType": "labels.text.fill",
+								"stylers": [
+								  {
+								    "color": "#9e9e9e"
+								  }
+								]
+								}
+							]
+				});
+				this.geocoder = new google.maps.Geocoder();
+				window.innerWidth <= this.breakpoint ? this.toCompact() : this.toFull();
+				var that = this;
+				window.addEventListener('resize', function(event) {
+					if (window.innerWidth <= that.breakpoint && that.compactState == false) {
+						that.toCompact();
+					} else if (window.innerWidth > that.breakpoint && that.compactState == true) {
+						that.toFull();
+					}
+				});
+			}
+		});
 	</script>
 </body>
 </html>

@@ -9,33 +9,13 @@ body
 	font-family: 'Amiri', serif
 
 $head-height: 0
+$top-image-height: 50%
+$side-stage-width: 245px
+$main-panel-bg: rgba(227,227,227,1)
+$side-panel-bg: rgba(252,252,252,1)
 
 #app
 	height: 100%
-
-header
-	// display: none
-	z-index: 100
-	height: $head-height
-	top: 0
-	position: absolute
-	// width: 100%
-	// background-color: rgba(70,70,70,1)
-	// box-sizing: border-box
-	width: 80%
-	right: 0
-	// border-bottom: 2px rgba(70,70,70,1) solid
-	#title
-		position: relative
-		width: 95px
-		margin: 0 auto
-		text-align: center
-		font-size: 18px
-		color: rgba(40,40,40,1)
-		letter-spacing: 0.2em
-		border-bottom: 1px rgba(125,125,125,1) solid
-		height: 25px
-
 
 section#main
 	// border: 1px blue solid
@@ -48,52 +28,305 @@ section#main
 
 #side-stage
 	position: absolute
-	width: 20%
-	height: 100%
+	top: 0
 	bottom: 0
-	background-color: rgba(252,252,252,1)
-	box-shadow: inset -9px 0px 13px -6px rgba(66,66,66,0.5)
-	left: 0%
-	.a-contact
+	width: $side-stage-width
+	height: 100%
+	background-color: $side-panel-bg
+	transition: left 300ms linear
+	&[data-arrange="pinned"]
+		left: 0
+		box-shadow: inset -9px 0px 13px -6px rgba(66,66,66,0.5)
+		transition: left 300ms linear
+	&[data-arrange="hiding"]
+		left: -$side-stage-width
+		transition: left 300ms linear
+	&[data-arrange="peaking"]
+		left: 0
+		transition: left 300ms linear
+		box-shadow: 6px 2px 8px -1px rgba(0,0,0,0.75)
+		z-index: 5000
+		background-color: transparentize($side-panel-bg, 0.18)
+	#contact-list
+		box-sizing: border-box
+		// border: 1px red solid
+		position: absolute
+		top: 0
+		left: 0
 		width: 100%
-		height: 31px
-		border-bottom: 1px rgba(90,90,90,0.4) solid
-		// box-sizing: border-box
-		// border-right: 2px blue solid
-		position: relative
-		cursor: pointer
-		box-shadow: inset -10px 0px 10px -6px lighten(rgba(32, 98, 204, 0), 10%)
-		transition: box-shadow 400ms linear
-		&:hover
-			box-shadow: inset -10px 0px 10px -6px lighten(rgba(32, 98, 204, 0.5), 10%)
-			transition: box-shadow 50ms linear
-		&.active
-			box-shadow: inset -10px 0px 10px -6px lighten(rgba(32, 98, 204, 0.8), 10%)
+		bottom: 60px
+		.a-contact
+			width: 100%
+			height: 32px
+			border-bottom: 1px rgba(90,90,90,0.4) solid
+			// box-sizing: border-box
+			// border-right: 2px blue solid
+			position: relative
+			cursor: pointer
+			box-shadow: inset -10px 0px 10px -6px lighten(rgba(32, 98, 204, 0), 10%)
 			transition: box-shadow 400ms linear
-		.fullname
-			position: absolute
-			top: 50%
-			right: 50px
-			transform: translateY(-50%)
-			// border: 1px blue solid
-			text-align: right
-			font-size: 17px
-			color: rgba(0,0,0,0.7)
-			transition: color 100ms linear
-		&.active .fullname
-			color: rgba(0,0,0,0.95)
-			transition: color 100ms linear
+			&:hover
+				box-shadow: inset -10px 0px 10px -6px lighten(rgba(32, 98, 204, 0.5), 10%)
+				transition: box-shadow 50ms linear
+			&.active
+				box-shadow: inset -10px 0px 10px -8px lighten(rgba(32, 98, 204, 0.8), 10%)
+				transition: box-shadow 400ms linear
+			.fullname
+				position: absolute
+				top: 50%
+				right: 50px
+				transform: translateY(-50%)
+				// border: 1px blue solid
+				text-align: right
+				font-size: 17px
+				color: rgba(0,0,0,0.7)
+				transition: color 80ms linear
+			&.hover .fullname
+				color: rgba(0,0,0,0.9)
+				transition: color 80ms linear
+			&.active .fullname
+				color: rgba(0,0,0,0.95)
+				transition: color 80ms linear
+			.contact-picture
+				background-size: cover
+				background-repeat: no-repeat
+				position: absolute
+				width: 32px
+				height: 100%
+				top: 50%
+				right: 0px
+				transform: translateY(-50%)
+				border-top-left-radius: 50%
+				border-bottom-left-radius: 50%
+				// border: 2px rgba(10,10,10,0.6) solid
+				opacity: 0.58
+				transition: all 100ms linear
+			&.hover .contact-picture
+				opacity: 0.9
+				transition: all 100ms linear
+			&.active .contact-picture
+				opacity: 1
+				transition: all 100ms linear
+			.delete-this
+				position: absolute
+				font-family: sans-serif
+				width: 12px
+				height: 12px
+				padding: 3px
+				top: 50%
+				left: 13px
+				transform: translateY(-50%) rotateZ(45deg)
+				// border: 1px blue solid
+				line-height: 10px
+				// font-weight: bold
+				transition: all 200ms linear
+				color: rgba(0,0,0,0.3)
+				&:hover
+					color: rgba(215,0,0,0.9)
+					transition: all 200ms linear
+	.create
+		border: 2px rgba(30,30,30,0.4) solid
+		border-radius: 4px
+		width: 90%
+		position: absolute
+		left: 0
+		right: 0
+		bottom: 9px
+		height: 40px
+		margin: 0px auto
+		text-align: center
+		font-size: 21px
+		color: rgba(40,40,40,0.7)
+		line-height: 42px
+		cursor: pointer
+		transition: all 170ms linear
+		&:hover
+			background-color: rgba(160,200,160,0.4)
+			transition: all 170ms linear
+			color: rgba(30,30,30,0.9)
 
 #main-stage
 	position: absolute
-	width: 80%
+	top: 0
+	right: 0
 	height: 100%
 	bottom: 0
 	box-sizing: border-box
 	right: 0%
-	background-color: rgba(227,227,227,1)
-
+	background-color: $main-panel-bg
+	transition: left 300ms linear
+	&[data-arrange="partial"]
+		left: $side-stage-width
+		transition: left 300ms linear
+	&[data-arrange="full"]
+		left: 0
+		transition: left 300ms linear
+	#side-toggler
+		position: absolute
+		z-index: 5000
+		font-size: 25px
+		color: rgba(80,80,80,0.9)
+		direction: rtl
+		line-height: 40px
+		transition: all 85ms linear
+		cursor: pointer
+		&[data-arrange="open-potential"]
+			background-color: transparentize($main-panel-bg, 0.2)
+			top: 20px
+			left: 0px
+			width: 50px
+			height: 35px
+			border-top-right-radius: 10px
+			border-bottom-right-radius: 10px
+			border-bottom-left-radius: 0px
+			transition: all 85ms linear
+			padding-right: 9px
+		&[data-arrange="close-potential"]
+			background-color: transparentize($side-panel-bg, 0.3)
+			top: 0px
+			left: 260px
+			width: 35px
+			height: 35px
+			padding-right: 13px
+			border-top-right-radius: 0px
+			border-bottom-right-radius: 10px
+			border-bottom-left-radius: 10px
+			transition: all 85ms linear
+	#map
+		position: absolute
+		width: 100%
+		height: 35%
+		bottom: 0
+		left: 0
+		// border: 1px blue solid
+	.selected-contact-wrapper
+		position: absolute
+		top: 0
+		right: 0
+		left: 0
+		bottom: 0
+		.current-contact
+			position: absolute
+			top: 0
+			right: 0
+			left: 0
+			bottom: 0
+			.image-wrapper
+				position: absolute
+				width: 100%
+				top: 0
+				height: $top-image-height
+				// border: 1px red solid
+				background-repeat: no-repeat
+				background-size: cover
+				background-position: 50%
+			.gradient
+				position: absolute
+				top: 0
+				left: 0
+				width: 100%
+				height: $top-image-height
+				// border: 1px red solid
+				background: linear-gradient(to bottom,  rgba(255,255,255,0) 0%,rgba(227,227,227,1) 100%)
+			.contact-info
+				position: absolute
+				top: 45%
+				left: 20px
+				right: 0
+				.name
+					position: absolute
+					top: 0
+					font-size: 40px
+					color: rgba(30, 30, 30, 1)
+				.personal-info
+					position: absolute
+					top: 55px
+					font-size: 24px
+					color: rgba(70,70,70,1)
+				.contact-buttons
+					position: absolute
+					top: 45px
+					right: 25px
+					width: 300px
+					font-size: 17px
+					& > div
+						display: inline-block
+						width: 120px
+						height: 37px
+						border: 2px rgba(30,30,30,0.4) solid
+						border-radius: 3px
+						text-align: center
+						line-height: 39px
+						cursor: pointer
+						transition: all 90ms linear
+						color: rgba(40,40,40,0.6)
+						&:hover
+							transition: all 90ms linear
+							color: rgba(40,40,40,0.9)
+						&.edit:hover
+							background-color: rgba(130,130,130,0.2)
+						&.delete:hover
+							color: white
+							background-color: rgba(150,0,0,0.5)
+							border: 2px rgba(100,0,0,0.25) solid
 
 #operation-stage
 	position: absolute
-	top: 240px
+	top: -10px
+	bottom: 100%
+	left: 0px
+	right: 0px
+	background-color: rgba(25,25,25,0.9)
+	border-bottom: 8px white solid
+	box-sizing: border-box
+	overflow: hidden
+	transition: all 150ms linear
+	&.active
+		top: 0px
+		bottom: 0%
+		transition: all 150ms linear
+	#contact-operation
+		text-align: center
+		color: white
+		.title
+			font-size: 35px
+			margin-bottom: 60px
+		.file-upload-wrapper
+			position: relative
+			width: 400px
+			height: 120px
+			margin: 5px auto 30px
+			border: 2px rgba(150,150,150,0.7) dashed
+			padding: 20px 10px
+			.preview-upload
+				position: absolute
+				top: 10px
+				left: 10px
+				right: 10px
+				bottom: 10px
+				background-repeat: no-repeat
+				background-size: cover
+				background-position: center
+				z-index: 200
+			input[type="file"]
+				z-index: 300
+				margin-top: 40px
+		.name-inputs
+			margin-bottom: 50px
+			input[type="text"]
+				width: 250px
+		.info-part-2
+			margin-bottom: 60px
+		input[type="text"]
+			font-size: 24px
+			color: rgba(220,220,220,0.9)
+			background-color: rgba(0,0,0,0)
+			border: none
+			border-bottom: 1px rgba(120,120,120,1) solid
+
+
+
+
+
+
+
