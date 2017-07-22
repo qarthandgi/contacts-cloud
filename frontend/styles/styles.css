@@ -25,12 +25,14 @@ section#main {
   bottom: 0;
   width: 245px;
   height: 100%;
-  background-color: #fcfcfc;
-  transition: left 300ms linear; }
+  background-color: #fcfcfc; }
+  #side-stage.searching {
+    background-color: #e5e5e5;
+    transition: background-color 150ms linear; }
   #side-stage[data-arrange="pinned"] {
     left: 0;
     box-shadow: inset -9px 0px 13px -6px rgba(66, 66, 66, 0.5);
-    transition: left 300ms linear; }
+    transition: left 300ms linear, background-color 150ms linear; }
   #side-stage[data-arrange="hiding"] {
     left: -245px;
     transition: left 300ms linear; }
@@ -40,10 +42,32 @@ section#main {
     box-shadow: 6px 2px 8px -1px rgba(0, 0, 0, 0.75);
     z-index: 5000;
     background-color: rgba(252, 252, 252, 0.82); }
+  #side-stage #search-wrapper {
+    width: 90%;
+    height: 35px;
+    top: 8px;
+    left: 0;
+    right: 0;
+    margin: 0px auto;
+    position: absolute; }
+    #side-stage #search-wrapper i {
+      color: rgba(70, 70, 70, 0.7);
+      cursor: pointer; }
+    #side-stage #search-wrapper.fa-times-circle {
+      color: rgba(70, 70, 70, 0.9); }
+    #side-stage #search-wrapper input {
+      border: none;
+      background-color: transparent;
+      border-bottom: 2px rgba(90, 90, 90, 0.55) solid;
+      outline: none;
+      font-size: 18px;
+      width: 85%; }
+      #side-stage #search-wrapper input.searching {
+        border-bottom: 2px rgba(90, 90, 90, 0.83) solid; }
   #side-stage #contact-list {
     box-sizing: border-box;
     position: absolute;
-    top: 0;
+    top: 50px;
     left: 0;
     width: 100%;
     bottom: 60px; }
@@ -55,6 +79,8 @@ section#main {
       cursor: pointer;
       box-shadow: inset -10px 0px 10px -6px rgba(62, 125, 225, 0);
       transition: box-shadow 400ms linear; }
+      #side-stage #contact-list .a-contact:nth-child(1) {
+        border-top: 1px rgba(90, 90, 90, 0.4) solid; }
       #side-stage #contact-list .a-contact:hover {
         box-shadow: inset -10px 0px 10px -6px rgba(62, 125, 225, 0.5);
         transition: box-shadow 50ms linear; }
@@ -138,7 +164,6 @@ section#main {
   height: 100%;
   bottom: 0;
   box-sizing: border-box;
-  right: 0%;
   background-color: #e3e3e3;
   transition: left 300ms linear; }
   #main-stage[data-arrange="partial"] {
@@ -147,6 +172,25 @@ section#main {
   #main-stage[data-arrange="full"] {
     left: 0;
     transition: left 300ms linear; }
+  #main-stage #no-results {
+    display: none; }
+    #main-stage #no-results.active {
+      display: block;
+      background-color: #e3e3e3;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 3000;
+      text-align: center; }
+      #main-stage #no-results.active span {
+        display: block;
+        position: relative;
+        top: 50%;
+        transform: translateY(-50%);
+        font-family: "Lora";
+        font-size: 22px; }
   #main-stage #side-toggler {
     position: absolute;
     z-index: 5000;

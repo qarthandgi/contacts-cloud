@@ -33,11 +33,14 @@ section#main
 	width: $side-stage-width
 	height: 100%
 	background-color: $side-panel-bg
-	transition: left 300ms linear
+	// transition: left 300ms linear, background-color 150ms linear
+	&.searching
+		background-color: darken($side-panel-bg, 9%)
+		transition: background-color 150ms linear
 	&[data-arrange="pinned"]
 		left: 0
 		box-shadow: inset -9px 0px 13px -6px rgba(66,66,66,0.5)
-		transition: left 300ms linear
+		transition: left 300ms linear, background-color 150ms linear
 	&[data-arrange="hiding"]
 		left: -$side-stage-width
 		transition: left 300ms linear
@@ -47,11 +50,33 @@ section#main
 		box-shadow: 6px 2px 8px -1px rgba(0,0,0,0.75)
 		z-index: 5000
 		background-color: transparentize($side-panel-bg, 0.18)
+	#search-wrapper
+		width: 90%
+		height: 35px
+		top: 8px
+		left: 0
+		right: 0
+		margin: 0px auto
+		position: absolute
+		i
+			color: rgba(70,70,70,0.7)
+			cursor: pointer
+		&.fa-times-circle
+			color: rgba(70,70,70,0.9)
+		input
+			border: none
+			background-color: transparent
+			border-bottom: 2px rgba(90,90,90,0.55) solid
+			outline: none
+			font-size: 18px
+			width: 85%
+			&.searching
+				border-bottom: 2px rgba(90,90,90,0.83) solid
 	#contact-list
 		box-sizing: border-box
 		// border: 1px red solid
 		position: absolute
-		top: 0
+		top: 50px
 		left: 0
 		width: 100%
 		bottom: 60px
@@ -65,6 +90,8 @@ section#main
 			cursor: pointer
 			box-shadow: inset -10px 0px 10px -6px lighten(rgba(32, 98, 204, 0), 10%)
 			transition: box-shadow 400ms linear
+			&:nth-child(1)
+				border-top: 1px rgba(90,90,90,0.4) solid
 			&:hover
 				box-shadow: inset -10px 0px 10px -6px lighten(rgba(32, 98, 204, 0.5), 10%)
 				transition: box-shadow 50ms linear
@@ -152,7 +179,6 @@ section#main
 	height: 100%
 	bottom: 0
 	box-sizing: border-box
-	right: 0%
 	background-color: $main-panel-bg
 	transition: left 300ms linear
 	&[data-arrange="partial"]
@@ -161,6 +187,25 @@ section#main
 	&[data-arrange="full"]
 		left: 0
 		transition: left 300ms linear
+	#no-results
+		display: none
+		&.active
+			display: block
+			background-color: $main-panel-bg
+			position: absolute
+			top: 0
+			left: 0
+			right: 0
+			bottom: 0
+			z-index: 3000
+			text-align: center
+			span
+				display: block
+				position: relative
+				top: 50%
+				transform: translateY(-50%)
+				font-family: "Lora"
+				font-size: 22px
 	#side-toggler
 		position: absolute
 		z-index: 5000

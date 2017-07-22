@@ -77,6 +77,7 @@ class ContactsResource(object):
 		print(jreq['first_name'], jreq['last_name'])
 		contact.first_name, contact.last_name = jreq['first_name'], jreq['last_name']
 		contact.phone_number, contact.zip_code = jreq['phone_number'], jreq['zip_code']
+		print(jreq['dob'])
 		if jreq['dob'] != '' and jreq['dob'] != None:
 			print(jreq['dob'])
 			contact.dob = date(int(jreq['dob'][0:4]), int(jreq['dob'][5:7]), int(jreq['dob'][8:10]))
@@ -110,12 +111,30 @@ class UploadResource(object):
 upload_resource = UploadResource()
 
 
+class SearchResource(object):
+
+	def on_get(self, req, res):
+		search_str = req.get_param('search')
+		if search_str == None:
+			contacts = Contact.select().order_by(+Contact.last_name)
+		else:
+			search_str = search_str.lower()
+			contacts = Contact.select().where((Contact.first_name.contains(search_str)) | (Contact.last_name.contains(search_str))).order_by(+Contact.last_name)
+		
+		contact_list = []
+		for contact in contacts:
+			contact_list.append(model_to_dict(contact))
+		res.body = (json.dumps(contact_list, default=handle_date))
+
+search_resource = SearchResource()
+
 
 # app = falcon.API()
 app = falcon.API(middleware=[cors.middleware, MultipartMiddleware()])
 
 app.add_route('/api/contacts', contacts_resource)
 app.add_route('/api/upload', upload_resource)
+app.add_route('/api/search', search_resource)
 
 
 
