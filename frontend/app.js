@@ -1,5 +1,5 @@
 var ax = axios.create({
-	baseURL: 'http://localhost:5000/api/',
+	baseURL: 'http://contacts.byonddesigns.com/api/',
 	timeout: 20000,
 	headers: {}
 });
@@ -203,14 +203,22 @@ var app = new Vue({
 					id: id
 				}
 			}).then(function(data) {
+				console.log(data)
 				for(var i = 0; i < that.contacts.length; i++) {
 					if (that.contacts[i].id === parseInt(data.data)) {
 						that.contacts.splice(i, 1);
-						that.selectedContactId = that.contacts[i-1].id;
+						console.log(that.contacts);
+						console.log(i);
+						if (i == that.contacts.length) {
+							that.selectedContactId = that.contacts[i-1].id;
+						} else {
+							that.selectedContactId = that.contacts[i].id;
+						}
 						break;
 					}
 				}
 			}).catch(function(err) {
+				console.log('activating');
 				$(that.$refs['no-results']).addClass('active');
 			});
 		},
@@ -245,6 +253,7 @@ var app = new Vue({
 				that.contacts.push(res.data);
 				app.sortContacts();
 				app.selectedContactId = res.data.id;
+				var refresh = app.selectedContact;
 				$(that.$refs['no-results']).removeClass("active");
 
 				if (that.fileToUpload) {

@@ -102,7 +102,11 @@ section#main {
     right: 0;
     margin: 0px auto;
     position: absolute;
-    background-color: #fcfcfc; }
+    background-color: #fcfcfc;
+    transition: background-color 150ms linear; }
+    #side-stage #search-wrapper.searching {
+      background-color: #e5e5e5;
+      transition: background-color 150ms linear; }
     #side-stage #search-wrapper i {
       color: rgba(70, 70, 70, 0.7);
       cursor: pointer; }
@@ -118,17 +122,26 @@ section#main {
       #side-stage #search-wrapper input.searching {
         border-bottom: 2px rgba(90, 90, 90, 0.83) solid; }
   #side-stage #top-fade {
+    display: none;
     position: absolute;
     top: 50px;
     width: 100%;
     height: 20px;
-    background: linear-gradient(to bottom, #fcfcfc 0%, rgba(125, 185, 232, 0) 100%); }
+    background: linear-gradient(to bottom, #fcfcfc 0%, rgba(125, 185, 232, 0) 100%);
+    transition: background 140ms linear; }
+    #side-stage #top-fade.searching {
+      background: linear-gradient(to bottom, #e5e5e5 0%, rgba(125, 185, 232, 0) 100%);
+      transition: background 140ms linear; }
   #side-stage #bottom-fade {
     position: absolute;
     bottom: 60px;
     height: 30px;
     width: 100%;
-    background: linear-gradient(to bottom, rgba(125, 185, 232, 0) 0%, #fcfcfc 100%); }
+    background: linear-gradient(to bottom, rgba(125, 185, 232, 0) 0%, #fcfcfc 100%);
+    transition: background 140ms linear; }
+    #side-stage #bottom-fade.searching {
+      background: linear-gradient(to bottom, rgba(125, 185, 232, 0) 0%, #e5e5e5 100%);
+      transition: background 140ms linear; }
   #side-stage #contact-list {
     box-sizing: border-box;
     position: absolute;

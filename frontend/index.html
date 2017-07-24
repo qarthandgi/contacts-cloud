@@ -18,7 +18,7 @@
 	<div id="app">
 		<section id=main>
 			<section id="side-stage" data-arrange="pinned" ref="side-stage" :class="{searching: searchActive}">
-				<div id="search-wrapper">
+				<div id="search-wrapper" :class="{searching: searchActive}">
 					<i class="fa" :class="{'fa-search': !searchActive, 'fa-times-circle': searchActive}" @click="handleSearchIcon"></i>&nbsp;
 					<input @keyup="searchInput" @click="activateSearch" :class="{'searching': searchActive}" v-model='searchText' type="text" @blur="deactivateSearchOnNone" ref='search-input'>
 				</div>
@@ -48,6 +48,7 @@
 					<i v-if="(sidePeaking)" class="fa fa-times"></i>
 				</div>
 				<selected-contact
+				v-if="(contacts.length !== 0)"
 				:contact="selectedContact"
 				:contactid="selectedContactId"
 				:currentzipcode="selectedContactZipCode"
