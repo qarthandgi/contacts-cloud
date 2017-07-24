@@ -1,6 +1,6 @@
 var ax = axios.create({
-	// baseURL: 'http://contacts.byonddesigns.com/api/',
-	baseURL: 'http://localhost:5000/api/',
+	baseURL: 'http://contacts.byonddesigns.com/api/',
+	// baseURL: 'http://localhost:5000/api/',
 	timeout: 20000,
 	headers: {}
 });
