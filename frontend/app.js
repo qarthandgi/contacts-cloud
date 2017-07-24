@@ -153,7 +153,7 @@ var app = new Vue({
 		operationPanelActive: false,
 		uploadFile: undefined,
 		fileToUpload: false,
-		breakpoint: 900,
+		breakpoint: 950,
 		compactState: false,
 		sidePeaking: false,
 		searchText: '',
