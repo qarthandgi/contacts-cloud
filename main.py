@@ -10,6 +10,10 @@ from falcon_cors import CORS
 from playhouse.shortcuts import model_to_dict, dict_to_model
 from falcon_multipart.middleware import MultipartMiddleware
 import boto3
+from PIL import Image
+from urllib.request import urlopen
+from io import BytesIO
+import requests
 
 cors = CORS(allow_origins_list=['http://localhost:8000'],
             allow_all_headers=True,
@@ -89,26 +93,52 @@ class ContactsResource(object):
 contacts_resource = ContactsResource()
 
 
+
 class UploadResource(object):
 
 	def on_post(self, req, res):
+		#gathering file from SPA
 		contact_id = req.get_param('id')
-		filename = req.get_param('file').filename
+		imported_filename = req.get_param('file').filename
 		file = req.get_param('file').file
 		salt = ''.join(chr(random.randint(97, 122)) for i in range(20))
-		filename = salt + '-' + filename
+		filename = salt + '-' + imported_filename
+		filename_thumb = salt + '-thumb-' + imported_filename
 
+		#uploading normal sized image
 		client.upload_fileobj(file, 'contacts-cloud-images', filename)	
 
+		#save urls to database
 		contact = Contact.get(Contact.id == contact_id)
-		contact.image_url = BASE_AWS_URL + filename
+		contact.image_url = image_url = BASE_AWS_URL + filename
+		contact.image_thumb_url = thumb_image_url = BASE_AWS_URL + filename_thumb
 		contact.save()
-		res.body = (contact.image_url)
 
+		# res.body = (contact.image_url)
+		res.body = (json.dumps([image_url, thumb_image_url]))
 
+		# pull down image again and resize
+		img = Image.open(requests.get(image_url, stream=True).raw)
+		img.thumbnail((50,50))
+		print(img.format, img.size)
+
+		#save it to BytesIO container
+		file_content = BytesIO()
+		img.save(file_content, img.format)
+
+		print(dir(file_content))
+		print(file_content.__sizeof__())
+
+		file_content.seek(0)
+		print('about to save thumb to s3')
+
+		#upload value of BytesIO container
+		client.upload_fileobj(file_content, 'contacts-cloud-images', filename_thumb)
 
 
 upload_resource = UploadResource()
+
+
 
 
 class SearchResource(object):
@@ -144,6 +174,7 @@ db = SqliteDatabase('people.db')
 # declare models and their fields
 class Contact(Model):
 	image_url = CharField(null=True)
+	image_thumb_url = CharField(null=True)
 	first_name = CharField(max_length=60)
 	last_name = CharField(null=True, max_length=60)
 	dob = DateField(null=True)

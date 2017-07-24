@@ -4,12 +4,17 @@
 	<meta charset="UTF-8">
 	<title>Posting Up</title>
 	<link rel="stylesheet" href="/styles/styles.css">
-	<link href="https://fonts.googleapis.com/css?family=Amiri|Lora|Puritan" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css?family=Amiri|Lora|Raleway" rel="stylesheet">
 	<link rel="stylesheet" href="/styles/font-awesome.min.css">
 	<link rel="stylesheet" href="./node_modules/pikaday/css/pikaday.css">
 	<link rel="stylesheet" href="./node_modules/pikaday/css/triangle.css">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body>
+	<div id="loading">
+		<div class="circle"></div>
+		<div class="title">LIAISON</div>
+	</div>
 	<div id="app">
 		<section id=main>
 			<section id="side-stage" data-arrange="pinned" ref="side-stage" :class="{searching: searchActive}">
@@ -24,9 +29,12 @@
 					:key="contact.id"
 					:contactid="selectedContactId"
 					@delete-this="deleteItem"
-					@select-this="selectItem">
+					@select-this="selectItem"
+					@toggle-side-peak="toggleSidePeak">
 					</a-contact>
 				</div>
+				<div id="top-fade" :class="{searching: searchActive}"></div>
+				<div id="bottom-fade" :class="{searching: searchActive}"></div>
 				<div @click="newItem" class="create">
 					<i class="fa fa-plus-circle"></i> Create
 				</div>
@@ -47,6 +55,7 @@
 				@delete-this="deleteItem">
 				</selected-contact>
 				<div id="map" ref="map"></div>
+				<div id="overlay" @click="toggleSidePeak" :class="{active: sidePeaking}"></div>
 			</section>
 			<section  id="operation-stage" :class="{active: operationPanelActive}">
 				<contact-operation
@@ -84,18 +93,17 @@
 				<div class="image-wrapper" :style="{'background-image': imageUrl}"></div>
 				<div class="gradient"></div>
 				<div class="contact-info">
-					<div class="name">{{contact.first_name}} {{contact.last_name}}</div>
+					<div class="name">{{contact.first_name}} {{contact.last_name}} <span v-if="(contact.dob !== null)" class="birthday-secondary">&nbsp;&nbsp;&nbsp;<i class="fa fa-birthday-cake"></i> {{humanDate}}</span></div>
 					<div class="personal-info">
 						<!-- {{contact.zip_code}} - -->
-						<i class="fa fa-globe"></i> {{currentzipcode}}
-						&nbsp;&nbsp;&nbsp;
-						<i class="fa fa-phone"></i> {{contact.phone_number}}
-						&nbsp;&nbsp;&nbsp;
-						<i v-if="contact.dob !== ''" class="fa fa-birthday-cake"></i> {{humanDate}}
+						<i class="fa fa-globe" v-if="(currentzipcode !== '')"></i> {{currentzipcode}}
+						<span v-if="(currentzipcode !== '')" class="spaces-no-mobile">&nbsp;&nbsp;&nbsp;</span><br class="mobile">
+						<i class="fa fa-phone" v-if="(contact.phone_number !== '')"></i> {{contact.phone_number}}<br class="mobile">
+						<span v-if="(contact.dob !== null)" class="birthday-primary"><span class="spaces-no-mobile">&nbsp;&nbsp;&nbsp;</span><i class="fa fa-birthday-cake"></i> {{humanDate}}</span>
 					</div>
 					<div class="contact-buttons">
-						<div @click="editThis" class="edit"><i class="fa fa-pencil"></i> Edit</div>
-						<div @click="deleteThis" class="delete"><i class="fa fa-times"></i> Delete</div>
+						<div @click="editThis" class="edit"><i class="fa fa-pencil"></i> <span class='no-mobile'>Edit</span></div>
+						<div @click="deleteThis" class="delete"><i class="fa fa-times"></i> <span class='no-mobile'>Delete</span></div>
 					</div>
 				</div>
 			</div>
@@ -108,31 +116,36 @@
 	<script type="text/x-template" id="contact-operation">
 		<div id="contact-operation">
 			<div class="title">
-				<span v-if="newstate">Create</span>
+				<span v-if="newstate">Create Contact</span>
 				<span v-else>Edit <small>{{usermodel.firstName}} {{usermodel.lastName}}</small></span>
 			</div>
+
 			<div class="file-upload-wrapper">
-				<div v-if="(image || usermodel.imageUrl)" @click="triggerFileDialog" class="preview-upload" :style="{'background-image': imageUrl}"></div>
+				<div class="inner-wrapper" @click="triggerFileDialog">
+					<span class="placeholder"><i class="fa fa-upload"></i> Click To Upload Image</span>
+					<div v-if="(image || usermodel.imageUrl)" @click="triggerFileDialog" class="preview-upload" :style="{'background-image': imageUrl}"></div>
+				</div>
 				<input type="file" accept="image/*" ref='file-upload' @change="onFileChange">
 			</div>
-			<div class="name-inputs">
-				<input id="operate-first-name" type="text" v-model="usermodel.firstName" class='first-name' placeholder="first name"><br><br>
-				<input type="text" v-model="usermodel.lastName" class='last-name' placeholder="last name"><br>
+
+			<div class="name-inputs input-containers">
+				<input id="operate-first-name" type="text" v-model="usermodel.firstName" class='first-name' placeholder="first name">
+				<input type="text" v-model="usermodel.lastName" class='last-name' placeholder="last name">
 			</div>
-			<div class="info-part-2">
-				<input type="text" v-model="usermodel.phoneNumber" class='phone-number' placeholder="phone number"><br><br>
-				<input type="text" v-model="usermodel.zipCode" class='zip-code' placeholder="zip code" maxlength="5">
+			<div class="info-part-2 input-containers">
+				<input type="text" v-model="usermodel.phoneNumber" maxlength="22" @keyup="handlePhoneNumber" class='phone-number' placeholder="phone number">
+				<input type="text" v-model="usermodel.zipCode" @keyup="handleZipCode" class='zip-code' placeholder="zip code" maxlength="5">
 			</div>
-			
-			<!-- <input type="text" v-model="usermodel.dob" class='dob' placeholder="date of birth" size=10 maxlength=10  onkeyup="this.value=this.value.replace(/^(\d\d)(\d)$/g,'$1/$2').replace(/^(\d\d\/\d\d)(\d+)$/g,'$1/$2').replace(/[^\d\/]/g,'')"> -->
-			<input type="text" class='dob' placeholder="date of birth" ref='actual-dob' :value="humanDate">
-			<input type="text" class='dob-picker' ref='dob-picker'>
+			<div class="date-inputs">
+				<input type="text" class='dob' placeholder="date of birth" ref='actual-dob' :value="humanDate">
+				<input type="text" class='dob-picker' ref='dob-picker'>
+			</div>
 
 			<div id="operation-button-wrapper">
-				<button v-if="newstate" @click="createThis">Create</button>
+				<button @click="cancelOperate"><i class="fa fa-times"></i> Cancel</button>
+				<button v-if="newstate" @click="createThis"><i class="fa fa-check"></i> Create</button>
 				<button v-else @click="updateThis">Update</button>
 			</div>
-			<div @click="cancelOperate">Cancel</div>
 		</div>
 	</script>
 

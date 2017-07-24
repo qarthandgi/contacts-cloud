@@ -1,6 +1,6 @@
 var ax = axios.create({
 	baseURL: 'http://localhost:5000/api/',
-	timeout: 3000,
+	timeout: 20000,
 	headers: {}
 });
 
@@ -10,10 +10,10 @@ Vue.component('a-contact', {
 	template: '#a-contact',
 	computed: {
 		isActive: function() {
-			return this.contact.id == this.contactid ? true : false
+			return this.contact.id == this.contactid ? true : false;
 		},
 		imageUrl: function() {
-			return "url('" + this.contact.image_url + "')";
+			return "url('" + this.contact.image_thumb_url + "')";
 		}
 	},
 	methods: {
@@ -22,6 +22,7 @@ Vue.component('a-contact', {
 		},
 		selectThis: function() {
 			this.$emit('select-this', this.contact.id);
+			this.$emit('toggle-side-peak');
 		}
 	}
 });
@@ -62,6 +63,12 @@ Vue.component('contact-operation', {
 	},
 	template: '#contact-operation',
 	methods: {
+		handlePhoneNumber: function() {
+			this.usermodel.phoneNumber = this.usermodel.phoneNumber.replace(/[^0-9+()\-x\s]/g, '');
+		},
+		handleZipCode: function() {
+			this.usermodel.zipCode = this.usermodel.zipCode.replace(/[^0-9]/g, '');
+		},
 		updateThis: function() {
 			this.$emit('update-this');
 		},
@@ -204,13 +211,14 @@ var app = new Vue({
 					}
 				}
 			}).catch(function(err) {
-				console.log(err);
+				$(that.$refs['no-results']).addClass('active');
 			});
 		},
 		toggleOperationPanel: function() {
 			this.operationPanelActive = false;
 		},
 		newItem: function() {
+			this.toggleSidePeak();
 			this.newState = true;
 			this.userModel = {
 				id: null,
@@ -237,15 +245,19 @@ var app = new Vue({
 				that.contacts.push(res.data);
 				app.sortContacts();
 				app.selectedContactId = res.data.id;
+				$(that.$refs['no-results']).removeClass("active");
 
 				if (that.fileToUpload) {
+					console.log(that.fileToUpload);
 					var data = new FormData();
 					data.append('id', res.data.id);
 					data.append('file', that.uploadFile);
 					ax.post('/upload', data).then(function(res) {
 						for (var i = that.contacts.length - 1; i >= 0; i--) {
 							if (app.selectedContactId == that.contacts[i].id) {
-								that.contacts[i].image_url = res.data;
+								console.log(res);
+								that.contacts[i].image_url = res.data[0];
+								that.contacts[i].image_thumb_url = res.data[1];
 								break;
 							}
 						}
@@ -350,6 +362,8 @@ var app = new Vue({
 		},
 		handleSearchIcon: function() {
 			if (this.searchActive === true) {
+				this.searchText = '';
+				this.searchInput();
 				this.searchActive = false;
 			} else {
 				this.$refs['search-input'].focus();
@@ -371,16 +385,17 @@ var app = new Vue({
 			this.sidePeaking = false;
 		},
 		toggleSidePeak: function() {
-			if (!this.sidePeaking) {
-				this.$refs['side-stage'].dataset.arrange = "peaking";
-				this.$refs['side-toggler'].dataset.arrange = "close-potential";
-				this.sidePeaking = true;
-			} else {
-				this.$refs['side-stage'].dataset.arrange = "hiding";
-				this.$refs['side-toggler'].dataset.arrange = "open-potential";
-				this.sidePeaking = false;
+			if (this.compactState == true) {
+				if (!this.sidePeaking) {
+					this.$refs['side-stage'].dataset.arrange = "peaking";
+					this.$refs['side-toggler'].dataset.arrange = "close-potential";
+					this.sidePeaking = true;
+				} else {
+					this.$refs['side-stage'].dataset.arrange = "hiding";
+					this.$refs['side-toggler'].dataset.arrange = "open-potential";
+					this.sidePeaking = false;
+				}
 			}
-			
 		}
 	},
 
@@ -394,11 +409,14 @@ var app = new Vue({
 				return;
 			}
 			this.geocoder.geocode({'address': this.selectedContact.zip_code}, function(results, status) {
-				if (status == 'OK') {
+				if (status == 'OK' && results[0]['address_components'][0]['types'][0] == 'postal_code') {
 					console.log(results);
+					app.map.setZoom(7);
 					app.map.panTo(results[0].geometry.location);
 					app.selectedContactZipCode = results[0]['formatted_address'];
 				} else {
+					app.map.setZoom(1);
+					app.selectedContactZipCode = '';
 					console.log('Geocoder not successful');
 				}
 			});
@@ -407,8 +425,12 @@ var app = new Vue({
 
 	// LIFECYCLE HOOKS ------------
 	beforeCreate: function() {
+		var that = this;
 		ax.get('/contacts')
 			.then(function(data) {
+				if (!data.data.length) {
+					$(that.$refs['no-results']).addClass("active");
+				}
 				for (var i = 0; i < data.data.length; i++) {
 					if (i === 0)  {
 						app.selectedContactId = data.data[i].id;
@@ -422,8 +444,8 @@ var app = new Vue({
 	},
 	mounted: function() {
 		this.map = new google.maps.Map(this.$refs.map, {
-			zoom: 5,
-			center: {lat: -25.363, lng: 131.044},
+			zoom: 1,
+			center: {lat: 35.363, lng: -21.044},
 			mapTypeControl: false,
 			styles: [
 						{
@@ -597,4 +619,11 @@ var app = new Vue({
 			}
 		});
 	}
+});
+
+$(window).on('load', function() {
+	$('#loading').addClass("remove");
+	setTimeout(function() {
+		$('#loading').hide();
+	}, 600);
 });

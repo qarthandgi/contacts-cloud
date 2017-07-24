@@ -10,12 +10,75 @@ body
 
 $head-height: 0
 $top-image-height: 50%
-$side-stage-width: 245px
+$side-stage-width: 255px
 $main-panel-bg: rgba(227,227,227,1)
 $side-panel-bg: rgba(252,252,252,1)
 
 #app
 	height: 100%
+
+@keyframes intro-loading
+	0%
+		border-radius: 0%
+		border: 4px rgba(80,80,80,0.9) solid
+	100%
+		border-radius: 50%
+		border: 4px rgba(170,130,30,0.9) solid
+
+@keyframes intro-just-color
+	0%
+		color: rgba(80,80,80,0.9)
+	100%
+		color: rgba(170,130,30,0.9)
+
+@keyframes fade-out
+	0%
+		// opacity: 1
+		height: inherit
+	100%
+		// opacity: 0
+		height: 0
+
+#loading
+	position: absolute
+	top: 0
+	right: 0
+	bottom: 0
+	left: 0
+	background-color: rgba(225,225,225,1)
+	z-index: 120000
+	overflow: hidden
+	opacity: 1
+	&.remove
+		opacity: 0
+		transition: all 400ms linear
+	.circle
+		position: absolute
+		width: 140px
+		height: 140px
+		border-radius: 50%
+		top: 45%
+		transform: translateY(-50%)
+		left: 0
+		right: 0
+		margin: 0px auto
+		border: 4px rgba(170,130,30,0.9) solid
+		// color: rgba(170,130,30,0.9)
+		// animation-name: intro-loading
+		// animation-duration: 5s
+	.title
+		position: absolute
+		top: 60%
+		left: 0
+		right: 0
+		margin: 0px auto
+		font-family: "Amiri"
+		font-size: 28px
+		letter-spacing: 4px
+		text-align: center
+		color: rgba(170,130,30,0.9)
+		// animation-name: intro-just-color
+		// animation-duration: 5s
 
 section#main
 	// border: 1px blue solid
@@ -33,23 +96,31 @@ section#main
 	width: $side-stage-width
 	height: 100%
 	background-color: $side-panel-bg
-	// transition: left 300ms linear, background-color 150ms linear
+	z-index: 2000
 	&.searching
 		background-color: darken($side-panel-bg, 9%)
 		transition: background-color 150ms linear
 	&[data-arrange="pinned"]
 		left: 0
-		box-shadow: inset -9px 0px 13px -6px rgba(66,66,66,0.5)
-		transition: left 300ms linear, background-color 150ms linear
+		// box-shadow: inset -9px 0px 13px -6px rgba(66,66,66,0.5)
+		transition: left 150ms linear, background-color 150ms linear
+		// &:before
+		// 	position: absolute
+		// 	top: 0
+		// 	right: 0
+		// 	bottom: 0
+		// 	left: 0
+		// 	pointer-events: none
+		// 	box-shadow: inset -9px 0px 13px -6px rgba(66,66,66,0.5)
 	&[data-arrange="hiding"]
 		left: -$side-stage-width
-		transition: left 300ms linear
+		transition: left 150ms linear
 	&[data-arrange="peaking"]
 		left: 0
-		transition: left 300ms linear
+		transition: left 150ms linear
 		box-shadow: 6px 2px 8px -1px rgba(0,0,0,0.75)
-		z-index: 5000
-		background-color: transparentize($side-panel-bg, 0.18)
+		// border-right: 3px black solid
+		background-color: transparentize($side-panel-bg, 0.02)
 	#search-wrapper
 		width: 90%
 		height: 35px
@@ -58,6 +129,7 @@ section#main
 		right: 0
 		margin: 0px auto
 		position: absolute
+		background-color: $side-panel-bg
 		i
 			color: rgba(70,70,70,0.7)
 			cursor: pointer
@@ -72,6 +144,23 @@ section#main
 			width: 85%
 			&.searching
 				border-bottom: 2px rgba(90,90,90,0.83) solid
+	#top-fade
+		position: absolute
+		top: 50px
+		width: 100%
+		height: 20px
+		// box-shadow: inset -9px 0px 13px -6px rgba(66,66,66,0.5)
+		background: linear-gradient(to bottom, rgba(252,252,252,1) 0%,rgba(125,185,232,0) 100%)
+		// &.searching
+		// 	background: linear-gradient(to bottom, darken(rgba(252,252,252,1), 9%) 0%,rgba(125,185,232,0) 100%)
+	#bottom-fade
+		position: absolute
+		bottom: 60px
+		height: 30px
+		width: 100%
+		background: linear-gradient(to bottom, rgba(125,185,232,0) 0%, rgba(252,252,252,1) 100%)
+		// &.searching
+		// 	background: linear-gradient(to bottom, rgba(125,185,232,0) 0%, darken(rgba(252,252,252,1), 9%) 100%)
 	#contact-list
 		box-sizing: border-box
 		// border: 1px red solid
@@ -80,24 +169,41 @@ section#main
 		left: 0
 		width: 100%
 		bottom: 60px
+		overflow-y: scroll
+		padding-bottom: 40px
+		&:after
+			content: ""
+			display: block
+			height: 30px
+			width: 100%
+		&:before
+			content: ""
+			display: block
+			height: 20px
+			width: 100%
 		.a-contact
 			width: 100%
 			height: 32px
 			border-bottom: 1px rgba(90,90,90,0.4) solid
-			// box-sizing: border-box
-			// border-right: 2px blue solid
 			position: relative
 			cursor: pointer
-			box-shadow: inset -10px 0px 10px -6px lighten(rgba(32, 98, 204, 0), 10%)
+			// box-shadow: inset 10px 0px 10px -6px lighten(rgba(32, 98, 204, 0), 10%)
 			transition: box-shadow 400ms linear
+			box-sizing: border-box
+			border-left: 3px transparent solid
 			&:nth-child(1)
-				border-top: 1px rgba(90,90,90,0.4) solid
+				border-top: 1px rgba(90,90,91,0.4) solid
+				border-bottom: 1px rgba(90,90,90,0.4) solid
 			&:hover
-				box-shadow: inset -10px 0px 10px -6px lighten(rgba(32, 98, 204, 0.5), 10%)
-				transition: box-shadow 50ms linear
+				// box-shadow: inset 10px 0px 10px -6px lighten(rgba(32, 98, 204, 0.5), 10%)
+				// transition: box-shadow 50ms linear
+				border-left: 3px #c1981c solid
+				background-color: rgba(255,255,255,0.7)
 			&.active
-				box-shadow: inset -10px 0px 10px -8px lighten(rgba(32, 98, 204, 0.8), 10%)
+				// box-shadow: inset 10px 0px 10px -8px lighten(rgba(32, 98, 204, 0.8), 10%)
 				transition: box-shadow 400ms linear
+				background-color: rgba(255,255,255,1)
+				border-left: 4px #c1981c solid
 			.fullname
 				position: absolute
 				top: 50%
@@ -152,8 +258,8 @@ section#main
 					color: rgba(215,0,0,0.9)
 					transition: all 200ms linear
 	.create
-		border: 2px rgba(30,30,30,0.4) solid
-		border-radius: 4px
+		border: none
+		// border-radius: 4px
 		width: 90%
 		position: absolute
 		left: 0
@@ -166,11 +272,11 @@ section#main
 		color: rgba(40,40,40,0.7)
 		line-height: 42px
 		cursor: pointer
-		transition: all 170ms linear
+		transition: all 80ms linear
 		&:hover
-			background-color: rgba(160,200,160,0.4)
-			transition: all 170ms linear
-			color: rgba(30,30,30,0.9)
+			// background-color: rgba(160,200,160,0.4)
+			transition: all 80ms linear
+			color: rgba(20,20,20,0.95)
 
 #main-stage
 	position: absolute
@@ -204,30 +310,37 @@ section#main
 				position: relative
 				top: 50%
 				transform: translateY(-50%)
-				font-family: "Lora"
+				font-family: "Amiri"
 				font-size: 22px
 	#side-toggler
 		position: absolute
 		z-index: 5000
 		font-size: 25px
-		color: rgba(80,80,80,0.9)
+		color: white
 		direction: rtl
 		line-height: 40px
 		transition: all 85ms linear
 		cursor: pointer
 		&[data-arrange="open-potential"]
-			background-color: transparentize($main-panel-bg, 0.2)
-			top: 20px
+			// background-color: transparentize($main-panel-bg, 0.2)
+			background-color: transparent
+			top: 10px
 			left: 0px
 			width: 50px
 			height: 35px
-			border-top-right-radius: 10px
-			border-bottom-right-radius: 10px
-			border-bottom-left-radius: 0px
-			transition: all 85ms linear
+			// border-top-right-radius: 10px
+			// border-bottom-right-radius: 10px
+			// border-bottom-left-radius: 0px
+			// border: 2px white solid
+			border-left: none
+			transition: all 50 linear
 			padding-right: 9px
 		&[data-arrange="close-potential"]
-			background-color: transparentize($side-panel-bg, 0.3)
+			// background-color: transparentize($side-panel-bg, 0.3)
+			background-color: transparent
+			// border: 2px white solid
+			// border-top: none
+			font-size: 19px
 			top: 0px
 			left: 260px
 			width: 35px
@@ -236,7 +349,8 @@ section#main
 			border-top-right-radius: 0px
 			border-bottom-right-radius: 10px
 			border-bottom-left-radius: 10px
-			transition: all 85ms linear
+			transition: all 50 linear
+			display: none
 	#map
 		position: absolute
 		width: 100%
@@ -244,6 +358,17 @@ section#main
 		bottom: 0
 		left: 0
 		// border: 1px blue solid
+	#overlay
+		position: absolute
+		top: 0
+		right: 0
+		bottom: 100%
+		left: 0
+		transition: background-color 100ms linear
+		&.active
+			bottom: 0
+			background-color: rgba(0,0,0,0.23)
+			transition: background-color 100ms linear
 	.selected-contact-wrapper
 		position: absolute
 		top: 0
@@ -283,17 +408,22 @@ section#main
 					top: 0
 					font-size: 40px
 					color: rgba(30, 30, 30, 1)
+					.birthday-secondary
+						display: none
 				.personal-info
 					position: absolute
 					top: 55px
 					font-size: 24px
 					color: rgba(70,70,70,1)
+					br.mobile
+						display: none
 				.contact-buttons
 					position: absolute
 					top: 45px
 					right: 25px
-					width: 300px
+					width: 250px
 					font-size: 17px
+					// border: 1px red solid
 					& > div
 						display: inline-block
 						width: 120px
@@ -305,6 +435,7 @@ section#main
 						cursor: pointer
 						transition: all 90ms linear
 						color: rgba(40,40,40,0.6)
+						box-sizing: border-box
 						&:hover
 							transition: all 90ms linear
 							color: rgba(40,40,40,0.9)
@@ -314,6 +445,56 @@ section#main
 							color: white
 							background-color: rgba(150,0,0,0.5)
 							border: 2px rgba(100,0,0,0.25) solid
+			@media screen and (max-width: 1310px)
+				.contact-info
+					.name
+						font-size: 36px
+						.birthday-secondary
+							display: inline
+							font-size: 22px
+							position: relative
+							top: -2px
+							color: rgba(70,70,70,1)
+					.personal-info
+						// border: 1px red solid
+						font-size: 22px
+						.birthday-primary
+							display: none
+			@media screen and (max-width: 1100px)
+				.contact-info
+					.contact-buttons
+						direction: rtl
+						top: 8px
+						& > div
+							display: block
+							margin-bottom: 4px
+			@media screen and (max-width: 650px)
+				.contact-info
+					top: 40%
+					.name
+						.birthday-secondary
+							display: none
+					.personal-info
+						line-height: 30px
+						font-size: 20px
+						br.mobile
+							display: block
+						.birthday-primary
+							display: inline
+						span.spaces-no-mobile
+							display: none
+					.contact-buttons
+						top: 63px
+			@media screen and (max-width: 420px)
+				.contact-info
+					.contact-buttons
+						.no-mobile
+							display: none
+						& > div
+							width: 50px
+			@media screen and (max-height: 620px)
+				.contact-info
+					top: 35%
 
 #operation-stage
 	position: absolute
@@ -326,6 +507,8 @@ section#main
 	box-sizing: border-box
 	overflow: hidden
 	transition: all 150ms linear
+	z-index: 5000
+	padding: 0px 8px
 	&.active
 		top: 0px
 		bottom: 0%
@@ -334,40 +517,129 @@ section#main
 		text-align: center
 		color: white
 		.title
-			font-size: 35px
-			margin-bottom: 60px
+			margin-top: 8px
+			font-size: 22px
+			margin-bottom: 40px
+			font-family: "Raleway"
+			font-weight: lighter
 		.file-upload-wrapper
 			position: relative
-			width: 400px
-			height: 120px
+			width: 350px
+			height: 100px
 			margin: 5px auto 30px
-			border: 2px rgba(150,150,150,0.7) dashed
+			border: 2px rgba(20,20,20,0.7) dashed
 			padding: 20px 10px
-			.preview-upload
+			cursor: pointer
+			transition: all 270ms linear
+			&:hover
+				border: 2px rgba(180,180,180,0.9) dashed
+				transition: all 270ms linear
+				&:hover .inner-wrapper span.placeholder
+					color: rgba(210,210,210,0.95)
+					transition: all 200ms linear
+			.inner-wrapper
 				position: absolute
 				top: 10px
 				left: 10px
 				right: 10px
 				bottom: 10px
-				background-repeat: no-repeat
-				background-size: cover
-				background-position: center
-				z-index: 200
+				background-color: rgba(20,20,20,1)
+				overflow: hidden
+				span.placeholder
+					display: block
+					// border: 2px rgba(70,70,70,0.7) solid
+					padding: 5px
+					position: absolute
+					left: 0
+					right: 0
+					margin: 0px auto
+					color: rgba(160,160,160,0.9)
+					transition: all 200ms linear
+					top: 50%
+					transform: translateY(-50%)
+					width: 200px
+					border-radius: 5px
+				.preview-upload
+					position: absolute
+					top: 0px
+					left: 0px
+					right: 0px
+					bottom: 0px
+					background-repeat: no-repeat
+					background-size: cover
+					background-position: center
+					z-index: 200
 			input[type="file"]
 				z-index: 300
 				margin-top: 40px
-		.name-inputs
-			margin-bottom: 50px
-			input[type="text"]
-				width: 250px
-		.info-part-2
-			margin-bottom: 60px
+				font-size: 3px
 		input[type="text"]
-			font-size: 24px
-			color: rgba(220,220,220,0.9)
-			background-color: rgba(0,0,0,0)
+			outline: none
+			transition: all 150ms linear
+			color: rgba(150,150,150,0.9)
 			border: none
 			border-bottom: 1px rgba(120,120,120,1) solid
+			font-size: 21px
+			background-color: rgba(0,0,0,0)
+			&:hover
+				border-bottom: 1px rgba(180,180,180,1) solid
+				transition: all 150ms linear
+			&:active, &:focus
+				border-bottom: 1px rgba(230,230,230,1) solid
+				transition: all 150ms linear
+		.input-containers
+			margin-bottom: 45px
+			input[type="text"]
+				width: 220px
+				&:nth-child(1)
+					margin-right: 6px
+				&:nth-child(2)
+					margin-left: 6px
+		.date-inputs
+			text-align: center
+			input
+				position: absolute
+				margin: 0px auto
+				width: 190px
+				left: 0
+				right: 0
+				&.dob-picker
+					display: none
+		#operation-button-wrapper
+			margin-top: 110px
+			button
+				cursor: pointer
+				width: 140px
+				height: 45px
+				border: none
+				background-color: rgba(70,70,70,0.3)
+				color: rgba(210,210,210,0.8)
+				font-size: 17px
+				font-family: "Raleway"
+				transition: all 90ms linear
+				&:hover
+					background-color: rgba(170,170,170,0.6)
+					color: rgba(255,255,255,0.96)
+					transition: all 90ms linear
+				&:nth-child(1)
+					margin-right: 10px
+					background-color: rgba(170,100,100,0.6)
+				&:nth-child(2)
+					margin-left: 10px
+					background-color: rgba(100,170,100,0.6)
+		@media screen and (max-width: 520px)
+			input[type="text"]
+				font-size: 17px
+			.input-containers
+				margin-bottom: 33px
+				input[type="text"]
+					width: 160px
+			.file-upload-wrapper
+				width: 300px
+				height: 80px
+
+
+
 
 
 
