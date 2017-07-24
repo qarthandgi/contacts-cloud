@@ -79,7 +79,7 @@ section#main {
   width: 255px;
   height: 100%;
   background-color: #fcfcfc;
-  z-index: 2000; }
+  z-index: 4000; }
   #side-stage.searching {
     background-color: #e5e5e5;
     transition: background-color 150ms linear; }
