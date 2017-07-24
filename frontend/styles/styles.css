@@ -423,7 +423,7 @@ section#main {
           font-size: 22px; }
           #main-stage .selected-contact-wrapper .current-contact .contact-info .personal-info .birthday-primary {
             display: none; } }
-      @media screen and (max-width: 650px) {
+      @media screen and (max-width: 690px) {
         #main-stage .selected-contact-wrapper .current-contact .contact-info {
           top: 40%; }
           #main-stage .selected-contact-wrapper .current-contact .contact-info .name .birthday-secondary {
