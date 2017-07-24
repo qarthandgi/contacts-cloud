@@ -454,6 +454,14 @@ section#main
 							color: white
 							background-color: rgba(150,0,0,0.5)
 							border: 2px rgba(100,0,0,0.25) solid
+			@media screen and (max-width: 1430px)
+				.contact-info
+					.contact-buttons
+						direction: rtl
+						top: 8px
+						& > div
+							display: block
+							margin-bottom: 4px
 			@media screen and (max-width: 1310px)
 				.contact-info
 					.name
@@ -469,14 +477,6 @@ section#main
 						font-size: 22px
 						.birthday-primary
 							display: none
-			@media screen and (max-width: 1100px)
-				.contact-info
-					.contact-buttons
-						direction: rtl
-						top: 8px
-						& > div
-							display: block
-							margin-bottom: 4px
 			@media screen and (max-width: 650px)
 				.contact-info
 					top: 40%
