@@ -328,7 +328,8 @@ var app = new Vue({
 					ax.post('/upload', data).then(function(res) {
 						for (var i = that.contacts.length - 1; i >= 0; i--) {
 							if (app.selectedContactId == that.contacts[i].id) {
-								that.contacts[i].image_url = res.data;
+								that.contacts[i].image_url = res.data[0];
+								that.contacts[i].image_thumb_url = res.data[1];
 								break;
 							}
 						}
