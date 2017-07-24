@@ -124,6 +124,7 @@ Vue.component('contact-operation', {
 		var picker = new Pikaday({
 			field: this.$refs['dob-picker'],
 			trigger: this.$refs['actual-dob'],
+			yearRange: [1900, 2017],
 			format: 'YYYY-MM-DD',
 			onClose: function(){
 				that.humanDate = picker.toString('MMMM Do, YYYY');
