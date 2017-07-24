@@ -15,7 +15,7 @@ from urllib.request import urlopen
 from io import BytesIO
 import requests
 
-cors = CORS(allow_origins_list=['http://localhost:8000'],
+cors = CORS(allow_origins_list=['http://localhost:8000', 'http://192.241.135.100'],
             allow_all_headers=True,
             allow_all_methods=True)
 
