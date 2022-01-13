@@ -11,7 +11,7 @@ idna==2.5
 jmespath==0.9.3
 olefile==0.44
 peewee==2.10.1
-Pillow==4.2.1
+Pillow==9.0.0
 python-dateutil==2.6.1
 python-mimeparse==1.6.0
 requests==2.18.1
